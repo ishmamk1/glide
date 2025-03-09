@@ -2,19 +2,32 @@ package main
 
 import (
 	"fmt"
+	"glide/internal/components"
 	"os"
-	"glide/internal/components" 
-	"github.com/eiannone/keyboard"
+	//"github.com/eiannone/keyboard"
+	"github.com/rivo/tview"
 )
 
 func main() {
 	currentDir, _ := os.Getwd()
-	err := keyboard.Open()
-	if err != nil {
-		fmt.Println("Failed to open keyboard listener:", err)
-		return
-	}
-	defer keyboard.Close()
 
-	components.HandleFileNavigation(currentDir)
+	app := tview.NewApplication()
+
+	treeView, referencePath := components.FileExplorer(currentDir)
+	
+	if referencePath != "" {
+		fmt.Println(referencePath)
+	} else {
+		fmt.Println("no path")
+	}
+	flex := tview.NewFlex().
+		AddItem(treeView, 40, 1, true). 
+		AddItem(tview.NewBox().SetBorder(true).SetTitle("Right Panel"), 0, 2, false)
+
+	app.SetFocus(treeView)
+
+	if err := app.SetRoot(flex, true).Run(); err != nil {
+		panic(err)
+	}
 }
+
