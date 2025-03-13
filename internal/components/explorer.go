@@ -24,13 +24,11 @@ func AddFiles(target *tview.TreeNode, path string) {
 	}
 }
 
-func FileExplorer(currentDir string) (*tview.TreeView, string) { 
-	root := tview.NewTreeNode(currentDir).SetColor(tcell.ColorRed)
+func FileExplorer(currentDir string, pathChannel chan string) *tview.TreeView { 
+	root := tview.NewTreeNode(currentDir).SetColor(tcell.ColorWhite)
 	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
 
 	AddFiles(root, currentDir)
-
-	var readFile string
 
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		reference := node.GetReference()
@@ -54,12 +52,10 @@ func FileExplorer(currentDir string) (*tview.TreeView, string) {
 				node.SetExpanded(!node.IsExpanded())
 			}
 		} else {
-			readFile := referencePath
-			if readFile != "" {
-			}
+			pathChannel <- referencePath
 		}
 	})
 
-	return tree, readFile
+	return tree
 }
 
