@@ -24,7 +24,7 @@ func AddFiles(target *tview.TreeNode, path string) {
 	}
 }
 
-func FileExplorer(currentDir string, pathChannel chan string) *tview.TreeView { 
+func FileExplorer(currentDir string, pathChannel chan string, cliPath chan string) *tview.TreeView { 
 	root := tview.NewTreeNode(currentDir).SetColor(tcell.ColorWhite)
 	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
 
@@ -51,6 +51,7 @@ func FileExplorer(currentDir string, pathChannel chan string) *tview.TreeView {
 			} else {
 				node.SetExpanded(!node.IsExpanded())
 			}
+			cliPath <- referencePath
 		} else {
 			pathChannel <- referencePath
 		}

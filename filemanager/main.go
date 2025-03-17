@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"glide/internal/components"
 	"os"
 	"github.com/gdamore/tcell/v2"
@@ -17,58 +16,37 @@ func main() {
 	}
 
 	pathChannel := make(chan string)
+	cliPath := make(chan string)
 
 	app := tview.NewApplication()
 
-	treeView := components.FileExplorer(currentDir, pathChannel)
+	treeView := components.FileExplorer(currentDir, pathChannel, cliPath)
 
-	textView := tview.NewTextView().
-		SetText("Select a file to view content").
-		SetTextAlign(tview.AlignLeft).
-		SetDynamicColors(true)
+	textView := components.FileViewer(app, pathChannel)
+
+	commandLine := components.CommandLine(app, cliPath)
 	
-	go func() {
-		for filePath := range pathChannel {
-			// Read file content
-			content, err := os.ReadFile(filePath)
-			if err != nil {
-				content = []byte("Error reading file")
-			}
-
-			// Update TextView dynamically
-			app.QueueUpdateDraw(func() {
-				textView.SetText(fmt.Sprintf("[yellow]File:[white] %s\n\n[white]%s", filePath, string(content)))
-			})
-			
-		}
-	}()
-
-	inputField := tview.NewInputField().
-		SetLabel("Enter a number: ").
-		SetFieldWidth(10).
-		SetAcceptanceFunc(tview.InputFieldInteger).
-		SetDoneFunc(func(key tcell.Key) {
-			app.Stop()
-		})
-	
-	flex := tview.NewFlex().SetDirection(tview.FlexRow). // Vertical layout
+	flex := tview.NewFlex().SetDirection(tview.FlexRow). 
 	AddItem(
-		tview.NewFlex(). // Inner Flex for tree + text view
+		tview.NewFlex().
 			AddItem(treeView, 40, 1, true). 
 			AddItem(textView, 0, 2, false),
-		0, 1, true, // This fills most of the screen
+		0, 1, true, 
 	).
-	AddItem(inputField, 3, 1, false) // Fixed height input field at the bottom
+	AddItem(commandLine, 3, 1, false) 
 	
 
-	app.SetFocus(inputField)
+	app.SetFocus(commandLine)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case 't':
 			app.SetFocus(treeView)
 		case 'i':
-			app.SetFocus(inputField)
+			app.SetFocus(commandLine)
+			return nil
+		case 'q':
+			app.SetFocus(textView)
 		}
 		return event
 	})
