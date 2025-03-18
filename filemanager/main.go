@@ -17,14 +17,15 @@ func main() {
 
 	pathChannel := make(chan string)
 	cliPath := make(chan string)
+	refreshTreeView := make(chan bool)
 
 	app := tview.NewApplication()
 
-	treeView := components.FileExplorer(currentDir, pathChannel, cliPath)
+	treeView := components.FileExplorer(app, currentDir, pathChannel, cliPath, refreshTreeView)
 
 	textView := components.FileViewer(app, pathChannel)
 
-	commandLine := components.CommandLine(app, cliPath)
+	commandLine := components.CommandLine(app, cliPath, refreshTreeView)
 	
 	flex := tview.NewFlex().SetDirection(tview.FlexRow). 
 	AddItem(
@@ -40,12 +41,12 @@ func main() {
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
-		case 't':
+		case '!':
 			app.SetFocus(treeView)
-		case 'i':
+		case '@':
 			app.SetFocus(commandLine)
 			return nil
-		case 'q':
+		case '#':
 			app.SetFocus(textView)
 		}
 		return event

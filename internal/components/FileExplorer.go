@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"strings"
 )
 
 func AddFiles(target *tview.TreeNode, path string) {
@@ -24,11 +25,21 @@ func AddFiles(target *tview.TreeNode, path string) {
 	}
 }
 
-func FileExplorer(currentDir string, pathChannel chan string, cliPath chan string) *tview.TreeView { 
+func FileExplorer(app *tview.Application, currentDir string, pathChannel chan string, cliPath chan string, refreshTreeView chan bool) *tview.TreeView { 
 	root := tview.NewTreeNode(currentDir).SetColor(tcell.ColorWhite)
 	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
 
 	AddFiles(root, currentDir)
+
+	go func() {
+		for range refreshTreeView {
+			app.QueueUpdateDraw(func() {
+                root.ClearChildren()
+                AddFiles(root, currentDir)
+            })
+		}
+		
+	}()
 
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		reference := node.GetReference()
@@ -42,7 +53,7 @@ func FileExplorer(currentDir string, pathChannel chan string, cliPath chan strin
 		if err != nil {
 			fmt.Println("Error reading file information", err)
 		}
-
+		
 		if fileInfo.IsDir() {
 			children := node.GetChildren()
 			if len(children) == 0 {
@@ -54,6 +65,8 @@ func FileExplorer(currentDir string, pathChannel chan string, cliPath chan strin
 			cliPath <- referencePath
 		} else {
 			pathChannel <- referencePath
+			endSlash := strings.LastIndex(referencePath, "/")
+			cliPath <- referencePath[:endSlash]
 		}
 	})
 
