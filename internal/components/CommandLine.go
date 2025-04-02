@@ -1,14 +1,8 @@
 package components
 
 import (
-	//"fmt"
-	//"os"
-	//"path/filepath"
-	//"path/filepath"
-	//"os"
 	"os"
 	"strings"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -19,6 +13,11 @@ func CommandLine(app *tview.Application, pathChannel chan string, refreshTreeVie
 		SetFieldBackgroundColor(tcell.ColorBlack).
 		SetLabelColor(tcell.ColorWhite).
 		SetLabel("/")
+	
+	commandLine.SetBorder(true)
+	commandLine.SetTitleColor(tcell.ColorYellow)
+	commandLine.SetBorderColor(tcell.ColorYellow)
+	commandLine.SetTitleAlign(tview.AlignLeft)
 	
 	var createFilePath string
 	
@@ -34,6 +33,7 @@ func CommandLine(app *tview.Application, pathChannel chan string, refreshTreeVie
 	commandLine.SetDoneFunc(func(key tcell.Key) {
 		command := commandLine.GetText()
 		commandParts := strings.Split(command, " ")
+ 
 
 		switch commandParts[0] {
 		case "cd":

@@ -8,6 +8,7 @@ import (
     "github.com/alecthomas/chroma/v2/formatters"
     "github.com/alecthomas/chroma/v2/lexers"
     "github.com/alecthomas/chroma/v2/styles"
+	"github.com/gdamore/tcell/v2"
 )
 
 func syntaxHighlighter(filePath string) (string, error) {
@@ -61,6 +62,12 @@ func FileViewer(app *tview.Application, pathChannel chan string) *tview.TextView
 		SetDynamicColors(true).
         SetRegions(true).          
         SetWrap(true)
+	
+	textView.SetBorder(true)
+	textView.SetTitle("File Viewer")
+	textView.SetTitleColor(tcell.ColorBlue)
+	textView.SetBorderColor(tcell.ColorBlue)
+	textView.SetTitleAlign(tview.AlignLeft)
 
 	go func() {
 		for filePath := range pathChannel {

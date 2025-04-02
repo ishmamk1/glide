@@ -42,6 +42,12 @@ func FileExplorer(app *tview.Application, currentDir string, pathChannel chan st
 	root := tview.NewTreeNode(currentDir).SetColor(tcell.ColorWhite)
 	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
 
+	tree.SetBorder(true)
+    tree.SetTitle("File Explorer")
+    tree.SetTitleColor(tcell.ColorGreen)
+    tree.SetBorderColor(tcell.ColorGreen)
+
+
 	AddFiles(root, currentDir)
 
 
