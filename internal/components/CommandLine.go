@@ -22,8 +22,6 @@ func CommandLine(app *tview.Application, pathChannel chan string, refreshTreeVie
 	
 	var createFilePath string
 	
-
-
 	go func() {
 		for filePath := range pathChannel {
 			app.QueueUpdateDraw(func() {
@@ -39,9 +37,17 @@ func CommandLine(app *tview.Application, pathChannel chan string, refreshTreeVie
 
 		switch commandParts[0] {
 		case "cd":
-		
+			
 		case "create":
-			os.Create(createFilePath + "/" + commandParts[1])
+			if strings.ContainsRune(commandParts[1], '.') {
+				os.Create(createFilePath + "/" + commandParts[1])
+				refreshTreeView <- true
+			} else {
+				os.Mkdir(createFilePath + "/" + commandParts[1], 0755)
+				refreshTreeView <- true
+			}
+		case "delete":
+			os.Remove(createFilePath + "/" + commandParts[1])
 			refreshTreeView <- true
 		default:
 				
@@ -49,8 +55,6 @@ func CommandLine(app *tview.Application, pathChannel chan string, refreshTreeVie
 		commandLine.SetText("")
 
 	})
-
-
 
 	return commandLine
 }
