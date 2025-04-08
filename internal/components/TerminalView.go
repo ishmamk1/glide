@@ -15,7 +15,7 @@ func TerminalView(app *tview.Application, terminalOutputChannel chan string) *tv
         SetTextAlign(tview.AlignLeft)
 
     terminalView.SetBorder(true).
-        SetTitle("Terminal").
+        SetTitle("Terminal View").
         SetTitleColor(tcell.ColorRed).
         SetBorderColor(tcell.ColorRed).
         SetTitleAlign(tview.AlignLeft).
