@@ -11,7 +11,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-func syntaxHighlighter(filePath string) (string, error) {
+func SyntaxHighlighter(filePath string) (string, error) {
 	content, err := os.ReadFile(filePath)
 
 	if err != nil {
@@ -71,7 +71,7 @@ func FileViewer(app *tview.Application, pathChannel chan string) *tview.TextView
 
 	go func() {
 		for filePath := range pathChannel {
-			highlightedContent, err := syntaxHighlighter(filePath)
+			highlightedContent, err := SyntaxHighlighter(filePath)
 			if err != nil || highlightedContent == "" {
 				highlightedContent = "Error reading file"
 			}
@@ -86,6 +86,3 @@ func FileViewer(app *tview.Application, pathChannel chan string) *tview.TextView
 
 	return textView
 }
-
-
-

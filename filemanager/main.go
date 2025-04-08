@@ -18,6 +18,7 @@ func main() {
 	pathChannel := make(chan string)
 	cliPath := make(chan string)
 	refreshTreeView := make(chan bool)
+	terminalOutputChannel := make(chan string)
 
 	app := tview.NewApplication()
 
@@ -25,7 +26,9 @@ func main() {
 
 	textView := components.FileViewer(app, pathChannel)
 
-	commandLine := components.CommandLine(app, cliPath, refreshTreeView)
+	commandLine := components.CommandLine(app, cliPath, refreshTreeView, terminalOutputChannel)
+
+	terminalView := components.TerminalView(app, terminalOutputChannel)
 	
 	flex := tview.NewFlex().SetDirection(tview.FlexRow). 
 	AddItem(
@@ -34,7 +37,8 @@ func main() {
 			AddItem(textView, 0, 2, false),
 		0, 1, true, 
 	).
-	AddItem(commandLine, 3, 1, false) 
+	AddItem(terminalView, 5, 0, false). 
+    AddItem(commandLine, 3, 1, false)
 	
 
 	app.SetFocus(commandLine)
@@ -48,6 +52,8 @@ func main() {
 			return nil
 		case '#':
 			app.SetFocus(textView)
+		case '$':
+			app.SetFocus(terminalView)
 		}
 		return event
 	})
