@@ -26,17 +26,10 @@ func AddFiles(target *tview.TreeNode, path string) {
 }
 
 // TODO: IMPLEMENT FUNCTION TO PRESERVE FILE EXPANDED STATE LOGIC AFTER REFRESH
+func TrackExpandedState(tree *tview.TreeView, root *tview.TreeNode, path string) {
 
-/*
-func TrackExpandedState(root *tview.TreeNode, path string, currentDir string) {
-
-	pathParts := strings.Split(path[len(currentDir):], "/")
-	
-	for _, file := range pathParts {
-		
-	}
 }
-*/
+
 
 func FileExplorer(app *tview.Application, currentDir string, pathChannel chan string, cliPath chan string, refreshTreeView chan bool) *tview.TreeView { 
 	root := tview.NewTreeNode(currentDir).SetColor(tcell.ColorWhite)
@@ -50,7 +43,6 @@ func FileExplorer(app *tview.Application, currentDir string, pathChannel chan st
 
 	AddFiles(root, currentDir)
 
-
 	go func() {
 		for range refreshTreeView {
 			app.QueueUpdateDraw(func() {
@@ -58,8 +50,7 @@ func FileExplorer(app *tview.Application, currentDir string, pathChannel chan st
 				AddFiles(root, currentDir)
 			})
 		}
-		// TrackExpandedState(tree, <-cliPath, currentDir)
-		
+
 	}()
 
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {

@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -30,6 +29,28 @@ func CommandLine(app *tview.Application, pathChannel chan string, refreshTreeVie
 	commandLine.SetLabel(curr_wd + ": ")
 	
 	var createFilePath string
+	var commandCache []string
+	commandIndex := len(commandCache)
+
+
+	commandLine.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyUp:
+			if commandIndex > 0 {
+				commandIndex -= 1
+				commandLine.SetText(commandCache[commandIndex])
+			}
+		case tcell.KeyDown:
+			if commandIndex + 1 == len(commandCache) {
+				commandIndex += 1
+				commandLine.SetText("")
+			} else if commandIndex < len(commandCache) {
+				commandIndex += 1
+				commandLine.SetText(commandCache[commandIndex])
+			}
+		}
+		return event
+	})
 	
 	go func() {
 		for filePath := range pathChannel {
@@ -42,83 +63,84 @@ func CommandLine(app *tview.Application, pathChannel chan string, refreshTreeVie
 
 	commandLine.SetDoneFunc(func(key tcell.Key) {
 		command := commandLine.GetText()
+		commandCache = append(commandCache, command)
+		commandIndex = len(commandCache)
 		commandParts := strings.Split(command, " ")
- 
 
 		switch commandParts[0] {
-		case "cd":
-			if len(commandParts) > 1 {
-				newPath := filepath.Join(createFilePath, commandParts[1])
-				err := os.Chdir(newPath)
+			case "cd":
+				if len(commandParts) > 1 {
+					newPath := filepath.Join(createFilePath, commandParts[1])
+					err := os.Chdir(newPath)
+					if err != nil {
+						terminalOutputChannel <- fmt.Sprintf("[red]Error: %s[white]", err.Error())
+					} else {
+						curr_wd, _ = os.Getwd() 
+						terminalOutputChannel <- fmt.Sprintf("[green]Changed directory to:[green] %s", curr_wd)
+						pathChannel <- curr_wd 
+						refreshTreeView <- true
+					}
+				} else {
+					terminalOutputChannel <- "[yellow]Error: No directory specified.[white]"
+				}
+			case "create":
+				if len(commandParts) > 1 {
+					newPath := filepath.Join(createFilePath, commandParts[1])
+					if strings.ContainsRune(commandParts[1], '.') {
+						if _, err := os.Create(newPath); err != nil {
+							terminalOutputChannel <- fmt.Sprintf("[red]Error creating file: %s[white]", err)
+						} else {
+							terminalOutputChannel <- fmt.Sprintf("[green]Created file:[white] %s", commandParts[1])
+							// refreshTreeView <- true
+						}
+					} else {
+						if err := os.Mkdir(newPath, 0755); err != nil {
+							terminalOutputChannel <- fmt.Sprintf("[red]Error creating directory: %s[white]", err)
+						} else {
+							terminalOutputChannel <- fmt.Sprintf("[green]Created directory:[white] %s", commandParts[1])
+							// refreshTreeView <- true
+						}
+					}
+				}
+			case "delete":
+				if len(commandParts) > 1 {
+					targetPath := filepath.Join(createFilePath, commandParts[1])
+					if err := os.Remove(targetPath); err != nil {
+						terminalOutputChannel <- fmt.Sprintf("[red]Error deleting: %s[white]", err)
+					} else {
+						terminalOutputChannel <- fmt.Sprintf("[red]Deleted:[white] %s", commandParts[1])
+						// refreshTreeView <- 
+					}
+				}
+			case "ls":
+				current_path, err := os.Getwd()
 				if err != nil {
-					terminalOutputChannel <- fmt.Sprintf("[red]Error: %s[white]", err.Error())
-				} else {
-					curr_wd, _ = os.Getwd() 
-					terminalOutputChannel <- fmt.Sprintf("[green]Changed directory to:[green] %s", curr_wd)
-					pathChannel <- curr_wd 
-					refreshTreeView <- true
+					terminalOutputChannel <- fmt.Sprintf("[red]Error obtaining current directory: %s[white]", err)
+					break
 				}
-			} else {
-				terminalOutputChannel <- "[yellow]Error: No directory specified.[white]"
-			}
-		case "create":
-			if len(commandParts) > 1 {
-                newPath := filepath.Join(createFilePath, commandParts[1])
-                if strings.ContainsRune(commandParts[1], '.') {
-                    if _, err := os.Create(newPath); err != nil {
-                        terminalOutputChannel <- fmt.Sprintf("[red]Error creating file: %s[white]", err)
-                    } else {
-                        terminalOutputChannel <- fmt.Sprintf("[green]Created file:[white] %s", commandParts[1])
-                        refreshTreeView <- true
-                    }
-                } else {
-                    if err := os.Mkdir(newPath, 0755); err != nil {
-                        terminalOutputChannel <- fmt.Sprintf("[red]Error creating directory: %s[white]", err)
-                    } else {
-                        terminalOutputChannel <- fmt.Sprintf("[green]Created directory:[white] %s", commandParts[1])
-                        refreshTreeView <- true
-                    }
-                }
-            }
-		case "delete":
-			if len(commandParts) > 1 {
-                targetPath := filepath.Join(createFilePath, commandParts[1])
-                if err := os.Remove(targetPath); err != nil {
-                    terminalOutputChannel <- fmt.Sprintf("[red]Error deleting: %s[white]", err)
-                } else {
-                    terminalOutputChannel <- fmt.Sprintf("[red]Deleted:[white] %s", commandParts[1])
-                    refreshTreeView <- true
-                }
-            }
-		case "ls":
-			current_path, err := os.Getwd()
-			if err != nil {
-				terminalOutputChannel <- fmt.Sprintf("[red]Error obtaining current directory: %s[white]", err)
-				break
-			}
-			
-			files, err := os.ReadDir(current_path)
-			if err != nil {
-				terminalOutputChannel <- fmt.Sprintf("[red]Error listing content: %s[white]", err)
-				break
-			}
-			
-			var files_list []string
-			for _, file := range files {
-				if file.IsDir() {
-					
-					files_list = append(files_list, fmt.Sprintf("[green]%s[white]", file.Name()))
-				} else {
-					files_list = append(files_list, file.Name())
+				
+				files, err := os.ReadDir(current_path)
+				if err != nil {
+					terminalOutputChannel <- fmt.Sprintf("[red]Error listing content: %s[white]", err)
+					break
 				}
-    		}
-    		terminalOutputChannel <- fmt.Sprintf("[green]Content:[white] %s", strings.Join(files_list, " "))
-		default:
-			terminalOutputChannel <- fmt.Sprintf("[yellow]Unknown command:[white] %s", commandParts[0])		
-		}
-		commandLine.SetText("")
+				
+				var files_list []string
+				for _, file := range files {
+					if file.IsDir() {
+						
+						files_list = append(files_list, fmt.Sprintf("[green]%s[white]", file.Name()))
+					} else {
+						files_list = append(files_list, file.Name())
+					}
+				}
+				terminalOutputChannel <- fmt.Sprintf("[green]Content:[white] %s", strings.Join(files_list, " "))
+			default:
+				terminalOutputChannel <- fmt.Sprintf("[yellow]Unknown command:[white] %s", commandParts[0])		
+			}
+			commandLine.SetText("")
 
-	})
+		})
 
 	return commandLine
 }

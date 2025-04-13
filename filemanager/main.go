@@ -37,7 +37,7 @@ func main() {
 			AddItem(textView, 0, 2, false),
 		0, 1, true, 
 	).
-	AddItem(terminalView, 5, 0, false). 
+	AddItem(terminalView, 7, 0, false). 
     AddItem(commandLine, 3, 1, false)
 	
 

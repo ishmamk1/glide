@@ -10,7 +10,6 @@ import (
     "github.com/alecthomas/chroma/v2/styles"
 	"github.com/gdamore/tcell/v2"
 )
-
 func SyntaxHighlighter(filePath string) (string, error) {
 	content, err := os.ReadFile(filePath)
 
