@@ -14,11 +14,11 @@ type Buffer struct {
 
 var (
     buffer *Buffer
-    once   sync.Once
+    bufferOnce   sync.Once
 )
 
 func GetBuffer() *Buffer {
-    once.Do(func() {
+    bufferOnce.Do(func() {
         buffer = &Buffer{
             Lines: [][]rune{},
         }
@@ -47,13 +47,31 @@ func LoadFile(buffer *Buffer, filePath string) {
 
 func RenderBuffer(screen tcell.Screen, buffer *Buffer) {
 	x, y := 1,1
-
+	width, _ := screen.Size()
 	for _, line := range buffer.Lines {
 		for _, runeValue := range line {
-			screen.SetContent(x,y,runeValue, nil, tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack))
-			x += 1
+			if x < width - 1 {
+				screen.SetContent(x,y,runeValue, nil, tcell.StyleDefault.Foreground(tcell.ColorWhite).Background(tcell.ColorBlack))
+				x += 1
+			}
 		}
 		y += 1
 		x = 1
 	}
+}
+
+func InsertRuneAt(row int, column int, r rune) {
+
+}
+
+func DeleteRuneAt(row int, column int) {
+
+}
+
+func SplitLine(row int, column int) {
+
+}
+
+func JoinLines(column int) {
+
 }

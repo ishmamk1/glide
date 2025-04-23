@@ -42,6 +42,7 @@ func main() {
     defer screen.Fini()
 
     buffer := components.GetBuffer()
+	cursor := components.NewCursor()
     
     components.LoadFile(buffer, "/Users/ishmam/glide/internal/editor/components/sample.txt")
 
@@ -53,7 +54,6 @@ func main() {
         screen.Clear()
         width, height := screen.Size()
         
-        // Draw the box
         CreateDynamicBox(screen, "", 0, 0, width, height)
         
         components.RenderBuffer(screen, buffer)
@@ -65,8 +65,22 @@ func main() {
             if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC {
                 return
             }
+			if ev.Key() == tcell.KeyDown {
+				components.MoveDown(len(buffer.Lines))
+			}
+			if ev.Key() == tcell.KeyUp {
+				components.MoveUp()
+			}
+			if ev.Key() == tcell.KeyLeft {
+				components.MoveLeft()
+			}
+			if ev.Key() == tcell.KeyRight {
+				components.MoveRight(len(buffer.Lines[cursor.Column - 1]))
+
+			}
         case *tcell.EventResize:
             screen.Sync()
         }
+		screen.ShowCursor(cursor.Row, cursor.Column)
     }
 }
