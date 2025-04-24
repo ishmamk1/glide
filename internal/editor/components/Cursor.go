@@ -9,8 +9,8 @@ import (
 )
 
 type Cursor struct {
-	Row int `default:"1"`
-	Column int `default:"1"`
+	X int `default:"1"`
+	Y int `default:"1"`
 }
 
 var (
@@ -21,27 +21,31 @@ var (
 func NewCursor() *Cursor {
 	cursorOnce.Do(func() {
 		cursor = &Cursor{
-			Row:1,
-			Column:1,
+			X:1,
+			Y:1,
 		}
 	})
 	return cursor
 }
 
-func MoveUp() {
-	cursor.Column = max(cursor.Column-1, 1)
+func MoveUp(buffer *Buffer) {
+	cursor.X = max(cursor.X-1, 1)
+	if cursor.X + 1 > 1 {
+		cursor.Y = min(cursor.Y, len(buffer.Lines[cursor.X-1]))
+	}
 }
 
-func MoveDown(maxHeight int) {
-	cursor.Column = min(cursor.Column+1, maxHeight)
+func MoveDown(buffer *Buffer, maxHeight int) {
+	cursor.X = min(cursor.X+1, maxHeight)
+	cursor.Y = min(cursor.Y, len(buffer.Lines[cursor.X-1]))
 }
 
-func MoveLeft() {
-	cursor.Row = max(1, cursor.Row-1)
+func MoveLeft(buffer *Buffer) {
+	cursor.Y = max(1, cursor.Y-1)
 }
 
-func MoveRight(maxWidth int) {
-	cursor.Row = min(cursor.Row + 1, maxWidth)
+func MoveRight(buffer *Buffer, maxWidth int) {
+	cursor.Y = min(cursor.Y + 1, maxWidth)
 }
 
 

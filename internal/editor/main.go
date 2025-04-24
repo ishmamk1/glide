@@ -65,22 +65,28 @@ func main() {
             if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC {
                 return
             }
-			if ev.Key() == tcell.KeyDown {
-				components.MoveDown(len(buffer.Lines))
-			}
-			if ev.Key() == tcell.KeyUp {
-				components.MoveUp()
-			}
-			if ev.Key() == tcell.KeyLeft {
-				components.MoveLeft()
-			}
-			if ev.Key() == tcell.KeyRight {
-				components.MoveRight(len(buffer.Lines[cursor.Column - 1]))
-
+			switch ev.Key() {
+			case tcell.KeyDown:
+				components.MoveDown(buffer, len(buffer.Lines))
+			case tcell.KeyUp:
+				components.MoveUp(buffer)
+			case tcell.KeyLeft:
+				components.MoveLeft(buffer,)
+			case tcell.KeyRight:
+				components.MoveRight(buffer, len(buffer.Lines[cursor.X - 1]))
+			case tcell.KeyDelete, tcell.KeyBackspace, tcell.KeyBackspace2:
+				components.DeleteRuneAt(cursor.X-1, cursor.Y-1)
+				components.MoveLeft(buffer)
+			case tcell.KeyRune:
+				r := ev.Rune()
+				if r >= 32 && r < 127 { 
+					components.InsertRuneAt(cursor.X-1, cursor.Y-1, r)
+					components.MoveRight(buffer, width)
+				}
 			}
         case *tcell.EventResize:
             screen.Sync()
         }
-		screen.ShowCursor(cursor.Row, cursor.Column)
+		screen.ShowCursor(cursor.Y, cursor.X)
     }
 }

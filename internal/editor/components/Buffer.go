@@ -60,12 +60,12 @@ func RenderBuffer(screen tcell.Screen, buffer *Buffer) {
 	}
 }
 
-func InsertRuneAt(row int, column int, r rune) {
-
+func InsertRuneAt(x int, y int, r rune) {
+	buffer.Lines[x] = append(buffer.Lines[x][:y], append([]rune{r}, buffer.Lines[x][y:]...)...)
 }
 
-func DeleteRuneAt(row int, column int) {
-
+func DeleteRuneAt(x int, y int) {
+	buffer.Lines[x] = append(buffer.Lines[x][:y], buffer.Lines[x][y+1:]...)
 }
 
 func SplitLine(row int, column int) {
