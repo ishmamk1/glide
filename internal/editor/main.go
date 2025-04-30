@@ -71,12 +71,19 @@ func main() {
 			case tcell.KeyUp:
 				components.MoveUp(buffer)
 			case tcell.KeyLeft:
-				components.MoveLeft(buffer,)
+				components.MoveLeft(buffer)
 			case tcell.KeyRight:
 				components.MoveRight(buffer, len(buffer.Lines[cursor.X - 1]))
 			case tcell.KeyDelete, tcell.KeyBackspace, tcell.KeyBackspace2:
-				components.DeleteRuneAt(cursor.X-1, cursor.Y-1)
-				components.MoveLeft(buffer)
+				isFirst := components.DeleteRuneAt(cursor.X-1, cursor.Y-1)
+				if (!isFirst){
+					components.MoveLeft(buffer)
+				} else {
+					components.MoveDown(buffer, len(buffer.Lines))
+				}
+			case tcell.KeyEnter:
+				components.SplitLine(cursor.X-1, cursor.Y-1)
+				components.MoveDown(buffer, len(buffer.Lines))
 			case tcell.KeyRune:
 				r := ev.Rune()
 				if r >= 32 && r < 127 { 
